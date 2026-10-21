@@ -131,23 +131,7 @@ export class RrhhController {
         return await this.ausenciasService.actualizarEstado(id, updateDto.estado);
     }
 
-     // Estadísticas de RRHH
-    @Get('dashboard/ausencias-por-mes')
-    async ausenciasPorMes(@Query('año') año: number) {
-        return await this.ausenciasService.obtenerEstadisticasPorMes(año);
-    }
     
-    @Get('dashboard/empleados-por-departamento')
-    async empleadosPorDepartamentoStats() {
-        return await this.empleadoService.obtenerEstadisticasPorDepartamento();
-    }
-
-    @Get('dashboard/ausencias-por-tipo')
-    async ausenciasPorTipo(@Query() filtro: FiltroAusenciasDto) {
-        return await this.ausenciasService.obtenerEstadisticasPorTipo(filtro);
-    }
-
-    //
 
     @Post('solicitud-baja')
     async crearSolicitudBaja(@Body() createSolicitudBajaDto: CreateSolicitudBajaDto) {
@@ -176,4 +160,31 @@ export class RrhhController {
     async obtenerEstadisticasSolicitudes() {
   return this.empleadoService.obtenerEstadisticasSolicitudesBaja();
     }
+
+
+    // Estadísticas de RRHH
+    @Get('dashboard/ausencias-por-mes')
+    async ausenciasPorMes(
+        @Query('año') año: number = new Date().getFullYear() 
+    ) {
+        return await this.ausenciasService.obtenerEstadisticasPorMes(año);
+    }
+    
+    @Get('dashboard/datos-analiticos-empleados')
+    async obtenerDatosAnaliticosEmpleados() {
+        return await this.empleadoService.obtenerDatosAnaliticosParaDashboard(); 
+    }
+    
+    @Get('dashboard/empleados-por-departamento')
+    async empleadosPorDepartamentoStats() {
+        return await this.empleadoService.obtenerEstadisticasPorDepartamento();
+    }
+
+    @Get('dashboard/ausencias-por-tipo')
+    async ausenciasPorTipo(
+        @Query() filtro: FiltroAusenciasDto = {} // Asigna un objeto vacío por defecto
+    ) {
+        return await this.ausenciasService.obtenerEstadisticasPorTipo(filtro);
+    }
+    
 }

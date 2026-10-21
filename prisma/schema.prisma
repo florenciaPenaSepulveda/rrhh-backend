@@ -9,83 +9,6 @@ datasource db {
   schemas  = ["RRHH", "public"]
 }
 
-model empleado {
-  id_empleado     Int                 @id @default(autoincrement())
-  rut             String              @unique
-  nombre          String
-  apellido        String
-  rol             String
-  email           String              @unique
-  telefono        String?
-  fecha_ingreso   DateTime
-  id_departamento Int
-  estado          String
-  fecha_baja      DateTime?
-  motivo_baja     String?
-  ausencias       rrhh_ausencia[]
-  roles           rrhh_empleado_rol[]
-  usuario         rrhh_usuario?
-  departamento    rrhh_departamento   @relation(fields: [id_departamento], references: [id_departamento])
-  solicitudes_baja rrhh_solicitud_baja[]
-
-  @@index([id_departamento])
-  @@index([estado])
-  @@schema("public")
-}
-
-model rrhh_solicitud_baja {
-  id_solicitud_baja Int       @id @default(autoincrement())
-  id_empleado       Int
-  fecha_solicitud   DateTime  @default(now())
-  motivo            String
-  estado            String    @default("PENDIENTE") // PENDIENTE, APROBADA, RECHAZADA
-  fecha_resolucion  DateTime?
-  motivo_resolucion String?
-  empleado          empleado  @relation(fields: [id_empleado], references: [id_empleado])
-
-  @@index([id_empleado])
-  @@index([estado])
-  @@index([fecha_solicitud])
-  @@schema("RRHH")
-}
-
-model rrhh_departamento {
-  id_departamento Int        @id @default(autoincrement())
-  nombre          String
-  empleados       empleado[]
-
-  @@schema("RRHH")
-}
-
-model rrhh_usuario {
-  id_usuario    Int      @id @default(autoincrement())
-  id_empleado   Int      @unique
-  password_hash String
-  activo        Boolean  @default(true)
-  empleado      empleado @relation(fields: [id_empleado], references: [id_empleado])
-
-  @@schema("RRHH")
-}
-
-model rrhh_rol {
-  id_rol      Int                 @id @default(autoincrement())
-  nombre      String              @unique
-  descripcion String?
-  empleados   rrhh_empleado_rol[]
-
-  @@schema("RRHH")
-}
-
-model rrhh_empleado_rol {
-  id_empleado Int
-  id_rol      Int
-  empleado    empleado @relation(fields: [id_empleado], references: [id_empleado])
-  rol         rrhh_rol @relation(fields: [id_rol], references: [id_rol])
-
-  @@id([id_empleado, id_rol])
-  @@schema("RRHH")
-}
-
 model rrhh_ausencia {
   id_ausencia     Int      @id @default(autoincrement())
   id_empleado     Int
@@ -100,3 +23,311 @@ model rrhh_ausencia {
   @@schema("RRHH")
 }
 
+model rrhh_departamento {
+  id_departamento Int    @id @default(autoincrement())
+  nombre          String
+
+  @@schema("RRHH")
+}
+
+model rrhh_empleado_rol {
+  id_empleado Int
+  id_rol      Int
+  empleado    empleado @relation(fields: [id_empleado], references: [id_empleado])
+  rrhh_rol    rrhh_rol @relation(fields: [id_rol], references: [id_rol])
+
+  @@id([id_empleado, id_rol])
+  @@schema("RRHH")
+}
+
+model rrhh_rol {
+  id_rol            Int                 @id @default(autoincrement())
+  nombre            String              @unique
+  descripcion       String?
+  rrhh_empleado_rol rrhh_empleado_rol[]
+
+  @@schema("RRHH")
+}
+
+model rrhh_solicitud_baja {
+  id_solicitud_baja Int       @id @default(autoincrement())
+  id_empleado       Int
+  fecha_solicitud   DateTime  @default(now())
+  motivo            String
+  estado            String    @default("PENDIENTE")
+  fecha_resolucion  DateTime?
+  motivo_resolucion String?
+  empleado          empleado  @relation(fields: [id_empleado], references: [id_empleado], onDelete: Cascade)
+
+  @@index([estado])
+  @@index([fecha_solicitud])
+  @@index([id_empleado])
+  @@schema("RRHH")
+}
+
+model rrhh_usuario {
+  id_usuario    Int      @id @default(autoincrement())
+  id_empleado   Int      @unique
+  password_hash String
+  activo        Boolean  @default(true)
+  empleado      empleado @relation(fields: [id_empleado], references: [id_empleado])
+
+  @@schema("RRHH")
+}
+
+model alumno {
+  rut      String @id @db.VarChar(12)
+  edad     Int?
+  id_curso String @db.VarChar(5)
+  curso    curso  @relation(fields: [id_curso], references: [id_curso], onDelete: NoAction, onUpdate: NoAction, map: "fk_curso")
+
+  @@schema("public")
+}
+
+model cliente {
+  id_cliente    Int       @id @default(autoincrement())
+  estado        String    @db.VarChar(50)
+  nombre        String    @db.VarChar(100)
+  apellido      String    @db.VarChar(100)
+  direccion     String?   @db.VarChar(255)
+  telefono      String?   @db.VarChar(20)
+  email         String?   @db.VarChar(100)
+  password_hash String?   @db.VarChar(255)
+  created_at    DateTime? @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model curso {
+  id_curso String   @id @db.VarChar(5)
+  year     Int
+  alumno   alumno[]
+  dicta    dicta[]
+
+  @@schema("public")
+}
+
+model detalles_extra {
+  id_detalle_extra BigInt @id @default(autoincrement())
+  id_producto      BigInt
+  categoria        String @db.VarChar(100)
+  imagen_url       String @db.VarChar(255)
+
+  @@schema("public")
+}
+
+model dicta {
+  id_dicta    Int      @id @default(autoincrement())
+  id_curso    String   @db.VarChar(5)
+  id_profesor String   @db.VarChar(10)
+  curso       curso    @relation(fields: [id_curso], references: [id_curso], onDelete: NoAction, onUpdate: NoAction, map: "fk_curso")
+  profesor    profesor @relation(fields: [id_profesor], references: [id_profesor], onDelete: NoAction, onUpdate: NoAction, map: "fk_profesor")
+
+  @@schema("public")
+}
+
+model direccion {
+  id_direccion  BigInt  @id @default(autoincrement())
+  id_cliente    BigInt
+  direccion     String  @db.VarChar(255)
+  numero        String  @db.VarChar(20)
+  ciudad        String  @db.VarChar(100)
+  region        String  @db.VarChar(100)
+  comuna        String  @db.VarChar(100)
+  codigo_postal String  @db.VarChar(20)
+  etiqueta      String? @db.VarChar(50)
+
+  @@schema("public")
+}
+
+model empleado {
+  id_empleado                      Int                                @id @default(autoincrement())
+  fecha_ingreso                    DateTime                           @db.Timestamp(6)
+  nombre                           String                             @db.VarChar(100)
+  apellido                         String                             @db.VarChar(100)
+  rol                              String?                            @db.VarChar(50)
+  email                            String?                            @db.VarChar(100)
+  telefono                         String?                            @db.VarChar(20)
+  rut                              String                             @default("")
+  fecha_baja                       DateTime?                          @db.Timestamp(6)
+  motivo_baja                      String?                            @db.VarChar(255)
+  id_departamento                  BigInt
+  estado                           String                             @db.VarChar(20)
+  rrhh_ausencia                    rrhh_ausencia[]
+  rrhh_empleado_rol                rrhh_empleado_rol[]
+  rrhh_solicitud_baja              rrhh_solicitud_baja[]
+  rrhh_usuario                     rrhh_usuario?
+  movimientos_inventario_logistica movimientos_inventario_logistica[]
+
+  @@schema("public")
+}
+
+model jugadores {
+  nombre_jugador    String  @db.VarChar(100)
+  rut               String  @id @db.VarChar(3)
+  edad              Int
+  cantidad_de_goles Int
+  peso              String? @db.VarChar(2)
+  id_equipo         Int?
+
+  @@schema("public")
+}
+
+model lector {
+  rut            String    @id(map: "pkey_lector") @db.Char(15)
+  nombre         String    @db.VarChar(100)
+  apellido       String    @db.Char(20)
+  edad           Decimal?  @db.Decimal(3, 0)
+  fecha_registro DateTime? @db.Date
+  email          String?   @db.VarChar(100)
+
+  @@schema("public")
+}
+
+model movimientos_inventario_logistica {
+  id               Int       @id @default(autoincrement())
+  cantidad         Int
+  es_recepcion     Boolean
+  id_referencia    Int
+  fecha_movimiento DateTime  @default(now()) @db.Timestamp(6)
+  id_producto      Int
+  id_empleado      Int?
+  empleado         empleado? @relation(fields: [id_empleado], references: [id_empleado], onDelete: NoAction, onUpdate: NoAction)
+  producto         producto  @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model oc_proveedores {
+  id_oc_proveedor           Int       @id @default(autoincrement())
+  id_orden_compra           Int       @unique
+  id_proveedor              Int
+  id_empleado               Int
+  fecha                     DateTime  @db.Timestamp(6)
+  subtotal                  Decimal   @db.Decimal(10, 2)
+  iva                       Decimal   @db.Decimal(10, 2)
+  total                     Decimal   @db.Decimal(10, 2)
+  estado_proveedor          String?   @default("PENDIENTE") @db.VarChar(50)
+  fecha_respuesta_proveedor DateTime? @db.Timestamp(6)
+  created_at                DateTime? @default(now()) @db.Timestamp(6)
+  pago_realizado            Boolean   @default(false)
+
+  @@index([estado_proveedor], map: "idx_oc_proveedores_estado")
+  @@index([id_proveedor], map: "idx_oc_proveedores_proveedor")
+  @@schema("public")
+}
+
+model playing_with_neon {
+  id    Int    @id @default(autoincrement())
+  name  String
+  value Float? @db.Real
+
+  @@schema("public")
+}
+
+model producto {
+  id_producto                      Int                                @id @default(autoincrement())
+  nombre                           String                             @db.VarChar(100)
+  descripcion                      String?
+  cantidad                         Decimal                            @default(0) @db.Decimal
+  estado                           Boolean                            @default(true)
+  codigo                           String                             @unique(map: "UQ_4ecaa777d3efc10b5a6327cfe42")
+  precio_venta                     Decimal                            @db.Decimal
+  movimientos_inventario_logistica movimientos_inventario_logistica[]
+  productos_por_despachar          productos_por_despachar[]
+  productos_sin_stock              productos_sin_stock?
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model producto_proveedor {
+  id_producto_proveedor Int      @id @default(autoincrement())
+  id_producto           Int
+  id_proveedor          Int
+  precio_proveedor      Decimal  @db.Decimal(12, 2)
+  activo                Boolean? @default(true)
+
+  @@unique([id_producto, id_proveedor], map: "uk_producto_proveedor")
+  @@schema("public")
+}
+
+model productos_por_despachar {
+  id_registro            Int      @id @default(autoincrement())
+  id_producto            BigInt
+  cantidad_por_despachar BigInt
+  fecha_registro         String?
+  producto               producto @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+model productos_sin_stock {
+  id_producto     Int       @id
+  descripcion     String?
+  fecha_sin_stock DateTime? @default(now()) @db.Timestamp(6)
+  precio_venta    Decimal?  @db.Decimal(10, 2)
+  codigo          String?   @db.VarChar(20)
+  nombre          String?
+  producto        producto  @relation(fields: [id_producto], references: [id_producto], onDelete: NoAction, onUpdate: NoAction, map: "FK_a594c7a787981dff38c762e4cd8")
+
+  @@schema("public")
+}
+
+model profesor {
+  id_profesor  String  @id @db.VarChar(10)
+  nombre       String  @db.VarChar(100)
+  especialidad String? @db.VarChar(50)
+  dicta        dicta[]
+
+  @@schema("public")
+}
+
+model proveedor {
+  id_proveedor Int     @id @default(autoincrement())
+  rut          String  @db.VarChar(20)
+  nombre       String  @db.VarChar(100)
+  contacto     String? @db.VarChar(50)
+  direccion    String? @db.VarChar(255)
+  telefono     String? @db.VarChar(20)
+  email        String? @db.VarChar(100)
+
+  @@schema("public")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model reservas_venta_inventario {
+  id_reserva   Int       @default(autoincrement())
+  fechareserva DateTime? @db.Timestamp(6)
+  id_carrito   BigInt
+  id_cliente   BigInt
+  id_producto  BigInt
+  stock        BigInt
+
+  @@ignore
+  @@schema("public")
+}
+
+model solicitud_producto {
+  id_solicitud     Int       @id @default(autoincrement())
+  nombre           String
+  descripcion      String
+  estado_solicitud Boolean?  @default(false)
+  fecha_solicitud  DateTime? @default(now()) @db.Timestamp(6)
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model usuarios {
+  id_usuario     Int       @id @default(autoincrement())
+  username       String    @unique @db.VarChar(50)
+  password_hash  String    @db.VarChar(255)
+  id_empleado    Int?
+  rol            String    @db.VarChar(20)
+  activo         Boolean?  @default(true)
+  fecha_creacion DateTime? @default(now()) @db.Timestamp(6)
+
+  @@schema("public")
+}

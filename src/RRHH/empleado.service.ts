@@ -522,4 +522,36 @@ export class EmpleadoService {
 
   return empleadosSinCuenta;
 }
+
+async obtenerDatosAnaliticosParaDashboard() {
+      return this.prisma.empleado.findMany({
+          select: {
+              id_empleado: true,
+              nombre: true,
+              apellido: true,
+              email: true,
+              fecha_ingreso: true, 
+              fecha_baja: true,    
+              estado: true,
+              roles: {
+                  select: {
+                      rol: { select: { nombre: true } } 
+                  }
+              },
+              departamento: {
+                  select: {
+                      nombre: true
+                  }
+              }
+          },
+          orderBy: {
+              id_empleado: 'asc'
+          }
+      });
+  }
+
+  
+  /**
+   * Crear una nueva solicitud de baja
+   */
 }
