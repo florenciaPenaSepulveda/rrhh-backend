@@ -1,4 +1,4 @@
-# back_modulo_rrhh
+# rrhh-backend
 
 ##  Instalación y Configuración
 
